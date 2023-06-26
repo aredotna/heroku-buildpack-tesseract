@@ -3,8 +3,8 @@
 set -euo pipefail
 
 VERSION=5.3.1
-
 BUILD_DIR=$1
+TESSERACT_DIR="vendor/tesseract"
 
 case "$STACK" in
     "heroku-22")
@@ -14,8 +14,6 @@ case "$STACK" in
         exit 1
         ;;
 esac
-
-TESSERACT_DIR="vendor/tesseract"
 
 if [[ -e "$BUILD_DIR/$TESSERACT_DIR" ]]; then
     echo "-----> Not extracting Tesseract, since \$TESSERACT_DIR already exists";
@@ -30,6 +28,7 @@ echo "-----> Updating environment variables"
 
 PROFILE_PATH="$BUILD_DIR/.profile.d/tesseract.sh"
 mkdir -p "$(dirname "$PROFILE_PATH")"
-echo "export PATH=\"$HOME/$TESSERACT_DIR/bin:\$PATH\"" > "$PROFILE_PATH"
-echo "export LD_LIBRARY_PATH=\"$HOME/$TESSERACT_DIR/lib:\$LD_LIBRARY_PATH\"" >> "$PROFILE_PATH"
-echo "export TESSDATA_PREFIX=\"$HOME/$TESSERACT_DIR/share\"" >> "$PROFILE_PATH"
+
+echo "export PATH=\"$HOME/$TESSERACT_DIR/bin:\$PATH\"" > $PROFILE_PATH
+echo "export LD_LIBRARY_PATH=\"$HOME/$TESSERACT_DIR/lib:\$LD_LIBRARY_PATH\"" >> $PROFILE_PATH
+echo "export TESSDATA_PREFIX=\"$HOME/$TESSERACT_DIR/share\"" >> $PROFILE_PATH
