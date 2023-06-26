@@ -3,16 +3,31 @@ BUILD_DIR=$1
 TESSERACT_OCR_VERSION=5.3.1
 TESSERACT_OCR_TGZ=tesseract-$TESSERACT_OCR_VERSION.tar.gz
 
-INSTALL_DIR=$BUILD_DIR/vendor/tesseract-ocr/
-TESSERACT_OCR_DIR=${HOME}/vendor/tesseract-ocr
-ENVSCRIPT=$BUILD_DIR/.profile.d/tesseract-ocr.sh
+INSTALL_DIR=$BUILD_DIR/vendor/
+TESSERACT_DIR=$BUILD_DIR/vendor/tesseract-$TESSERACT_OCR_VERSION
+ENVSCRIPT=$BUILD_DIR/.profile.d/tesseract.sh
 
-echo "Unpacking Tesseract-OCR binaries"
+echo " - - - -> Install dependecnies"
+apt-get update -y
+apt-get install -y libleptonica-dev libpng-dev libtiff-dev libtool g++ pkg-config libgif-dev libicu-dev libpango1.0-dev cmake
+
+echo " - - - -> Unpacking Tesseract-OCR sources"
 mkdir -p $INSTALL_DIR
 tar -zxvf $TESSERACT_OCR_TGZ -C $INSTALL_DIR
 
-echo "Building runtime environment for Tesseract-OCR"
+echo " - - - -> Build Tesseract-OCR from sources"
+cd $TESSERACT_DIR || exit 1
+
+./autogen.sh
+./configure
+make VERBOSE=1
+# make install VERBOSE=1
+# ldconfig
+
+echo " - - - -> Building runtime environment for Tesseract"
+
 mkdir -p $BUILD_DIR/.profile.d
-echo "export PATH=\"$TESSERACT_OCR_DIR/bin:\$PATH\"" > $ENVSCRIPT
-echo "export LD_LIBRARY_PATH=\"$TESSERACT_OCR_DIR/lib:\$LD_LIBRARY_PATH\"" >> $ENVSCRIPT
-echo "export TESSDATA_PREFIX=\"$TESSERACT_OCR_DIR/share/tessdata\"" >> $ENVSCRIPT
+
+echo "export PATH=\"$TESSERACT_DIR/bin:\$PATH\"" > $ENVSCRIPT
+echo "export LD_LIBRARY_PATH=\"$TESSERACT_DIR/lib:\$LD_LIBRARY_PATH\"" >> $ENVSCRIPT
+echo "export TESSDATA_PREFIX=\"$TESSERACT_DIR/\"" >> $ENVSCRIPT
