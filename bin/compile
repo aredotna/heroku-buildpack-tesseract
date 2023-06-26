@@ -1,33 +1,35 @@
 #!/bin/bash
+
+set -euo pipefail
+
+VERSION=5.3.1
+
 BUILD_DIR=$1
-TESSERACT_OCR_VERSION=5.3.1
-TESSERACT_OCR_TGZ=tesseract-$TESSERACT_OCR_VERSION.tar.gz
 
-INSTALL_DIR=$BUILD_DIR/vendor/
-TESSERACT_DIR=$BUILD_DIR/vendor/tesseract-$TESSERACT_OCR_VERSION
-ENVSCRIPT=$BUILD_DIR/.profile.d/tesseract.sh
+case "$STACK" in
+    "heroku-22")
+        ;;
+    *)
+        echo >&2 "Unsupported stack $STACK"
+        exit 1
+        ;;
+esac
 
-echo " - - - -> Install dependecnies"
-apt-get update -y
-apt-get install -y libleptonica-dev libpng-dev libtiff-dev libtool g++ pkg-config libgif-dev libicu-dev libpango1.0-dev cmake
+TESSERACT_DIR="vendor/tesseract"
 
-echo " - - - -> Unpacking Tesseract-OCR sources"
-mkdir -p $INSTALL_DIR
-tar -zxvf $TESSERACT_OCR_TGZ -C $INSTALL_DIR
+if [[ -e "$BUILD_DIR/$TESSERACT_DIR" ]]; then
+    echo "-----> Not extracting Tesseract, since \$TESSERACT_DIR already exists";
+    exit 0
+fi
 
-echo " - - - -> Build Tesseract-OCR from sources"
-cd $TESSERACT_DIR || exit 1
+echo "-----> Extracting Tesseract to $TESSERACT_DIR"
+mkdir -p "$BUILD_DIR/$TESSERACT_DIR"
+tar --strip-components=1 -C "$BUILD_DIR/$TESSERACT_DIR" -zxvf "tesseract-${VERSION}-${STACK}.tar.gz"
 
-./autogen.sh
-./configure
-make VERBOSE=1
-# make install VERBOSE=1
-# ldconfig
+echo "-----> Updating environment variables"
 
-echo " - - - -> Building runtime environment for Tesseract"
-
-mkdir -p $BUILD_DIR/.profile.d
-
-echo "export PATH=\"$TESSERACT_DIR/bin:\$PATH\"" > $ENVSCRIPT
-echo "export LD_LIBRARY_PATH=\"$TESSERACT_DIR/lib:\$LD_LIBRARY_PATH\"" >> $ENVSCRIPT
-echo "export TESSDATA_PREFIX=\"$TESSERACT_DIR/\"" >> $ENVSCRIPT
+PROFILE_PATH="$BUILD_DIR/.profile.d/tesseract.sh"
+mkdir -p "$(dirname "$PROFILE_PATH")"
+echo "export PATH=\"$HOME/$TESSERACT_DIR/bin:\$PATH\"" > "$PROFILE_PATH"
+echo "export LD_LIBRARY_PATH=\"$HOME/$TESSERACT_DIR/lib:\$LD_LIBRARY_PATH\"" >> "$PROFILE_PATH"
+echo "export TESSDATA_PREFIX=\"$HOME/$TESSERACT_DIR/share\"" >> "$PROFILE_PATH"

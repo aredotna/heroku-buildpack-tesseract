@@ -1,2 +1,4 @@
 #!/bin/sh
-echo "detect"
+
+echo 'tesseract-buildpack'
+exit 0
