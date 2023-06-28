@@ -5,12 +5,12 @@ set -x
 
 VERSION=5.3.1
 STACK=heroku-22
-
+PREFIX=vendor
 
 echo " - - - -> Install dependencies"
 export DEBIAN_FRONTEND=noninteractive
-apt-get update -y
-apt-get install -y \
+apt-get update
+apt-get install -yqq --no-install-recommends \
   autoconf automake autotools-dev libtool g++ pkg-config cmake \
   libcurl4-openssl-dev libleptonica-dev libpng-dev libtiff-dev \
   libgif-dev libicu-dev libpango1.0-dev
@@ -31,8 +31,11 @@ tar --strip-components=1 -zxvf "tesseract-${VERSION}.tar.gz"
 echo " - - - -> Build and install Tesseract from sources"
 mkdir build
 cd build || exit 1
-# -DBUILD_SHARED_LIBS=OFF
-CFLAGS="-mtune=generic" CXXFLAGS="-mtune=generic" cmake -DGRAPHICS_DISABLED=ON -DBUILD_TRAINING_TOOLS=OFF -DMARCH_NATIVE_OPT=OFF ..
+CFLAGS="-mtune=generic" CXXFLAGS="-mtune=generic" cmake -DGRAPHICS_DISABLED=ON -DBUILD_SHARED_LIBS=OFF -DBUILD_TRAINING_TOOLS=OFF -DMARCH_NATIVE_OPT=OFF ..
+
+# ./autogen.sh
+# ./configure --prefix=${PREFIX} --disable-dependency-tracking --datarootdir=${PREFIX}/share
+
 make
 
 mkdir -p /src/tesseract-${VERSION}-${STACK}/bin
